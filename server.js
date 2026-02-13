@@ -167,7 +167,9 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     lastActive[room][user] = Date.now();
     typing[room][user] = false;
 
-    res.sendStatus(200);
+    // <-- redirect back to chat page
+    res.redirect("/");
+
   } catch (err) {
     console.error("Upload error:", err);
     res.sendStatus(500);
