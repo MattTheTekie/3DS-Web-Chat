@@ -3,56 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AIM XP 3DS</title>
-
+<title>AIM XP 3DS/PC</title>
 <style>
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
   background: #3A6EA5;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
   font-family: Tahoma;
   font-size: 14px;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
+/* XP WINDOW */
 #window {
-  width: 100%;
-  max-width: 900px;
-  height: 100%;
-  max-height: 600px;
+  width: 1200px;
+  max-width: 95%;
+  height: 800px;
+  max-height: 95%;
   background: #ECE9D8;
   border: 2px solid #0A246A;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
-@media (max-width: 600px) {
-  #window {
-    height: 100vh;
-    width: 100vw;
-    border: none;
-  }
-
-  #main {
-    flex-direction: column;
-  }
-
-  #chat {
-    height: 200px;
-  }
+/* ---------- XP Buttons - all devices ---------- */
+#xpButtons {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    white-space: nowrap; /* keep buttons horizontal */
+    display: flex;
+    gap: 2px;           /* spacing between buttons */
 }
 
+#xpButtons .xpBtn {
+    display: inline-block;
+    width: 22px;        /* slightly bigger for PC/mobile */
+    height: 22px;
+    line-height: 22px;  /* center text */
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+
+    border: 2px outset gray;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 12px;
+    background-color: #ECE9D8; /* classic XP button background */
+    color: white;               /* text color white */
+}
+
+/* Individual button colors */
+#xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
+#xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
+#xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
+
+/* Hover effect for PC / bigger screens */
+#xpButtons .xpBtn:hover {
+    background-color: #D0D0D0;
+}
+
+/* Pressed effect */
+#xpButtons .xpBtn:active {
+    border: 2px inset gray;
+    background-color: #B8B8B8;
+}
+
+/* TITLEBAR */
 #titlebar {
+  width: 100%;
   height: 30px;
   background: #0A246A;
   color: white;
   line-height: 30px;
   padding-left: 10px;
   font-weight: bold;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
 }
 
+
+
+/* MAIN (Chat + Users) */
 #main {
   flex: 1;
   display: flex;
@@ -61,6 +103,7 @@ body {
   overflow: hidden;
 }
 
+/* CHAT AREA */
 #chatArea {
   flex: 3;
   display: flex;
@@ -85,6 +128,7 @@ body {
   width: 70%;
 }
 
+/* USERS PANEL */
 #usersPanel {
   flex: 1;
   background: #F4F4F4;
@@ -95,6 +139,7 @@ body {
   font-size: 12px;
 }
 
+/* BUTTONS */
 input, button {
   font-family: Tahoma;
   font-size: 14px;
@@ -114,37 +159,184 @@ button:active {
   margin-top: 5px;
 }
 
-/* Hide the mirrored fields */
-.hiddenField {
-  display: none;
+/* Hide mirrored fields */
+.hiddenField { display: none; }
+
+/* --- 3DS / small screens (stacked dual-screen) --- */
+
+
+@media (max-width: 600px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 800px; /* double height page */
+    overflow: hidden;
+    background: #ECE9D8;
+  }
+
+  #window {
+    position: relative;
+    width: 100%;
+    height: 800px;
+    border: none;
+    box-sizing: border-box;
+  }
+
+
+  /* TOP SCREEN = Chat UI */
+  #topScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 210px; /* slightly smaller top screen */
+    display: flex;
+    flex-direction: column;
+  }
+
+
+  #titlebar {
+    height: 30px;
+    background: #0A246A;
+    color: white;
+    line-height: 30px;
+    padding-left: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* title stays left */
+    position: relative;
+  }
+
+  #chatArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    overflow: hidden;
+  }
+
+  #chat {
+    height: 160px; /* slightly smaller chat */
+    background: white;
+    border: 2px inset gray;
+    overflow-y: scroll;
+    padding: 5px;
+  }
+
+  /* BOTTOM SCREEN = Users + input + upload */
+  #bottomScreen {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 590px; /* remaining bottom screen */
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+    background: #F4F4F4;
+  }
+
+  #inputArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #usersPanel {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 5px;
+    border: 2px inset gray;
+    padding: 5px;
+    background: #F4F4F4;
+  }
+
+  input, button {
+    font-family: Tahoma;
+    font-size: 14px;
+  }
+
+  button {
+    border: 2px outset gray;
+    background: #ECE9D8;
+    cursor: pointer;
+  }
+
+  button:active {
+    border: 2px inset gray;
+  }
+
+  .hiddenField {
+    display: none;
+  }
+
+
+  #xpButtons {
+    position: absolute;
+    top: 3px;   /* adjust vertical position */
+    right: 3px; /* adjust horizontal position */
+    white-space: nowrap; /* prevent wrapping */
+  }
+
+#xpButtons .xpBtn {
+    display: inline-block;
+    width: 18px;        /* smaller width */
+    height: 18px;       /* smaller height */
+    line-height: 18px;  /* vertically center text */
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 1px;   /* minimal spacing */
+    box-sizing: border-box;
+
+    border: 2px outset gray;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 10px;       /* smaller font so X fits */
+    background-color: #ECE9D8;
+    color: white;
+}
+
+/* Individual button colors */
+#xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
+#xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
+#xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
+
+/* Pressed effect */
+#xpButtons .xpBtn:active {
+    border: 2px inset gray;
+    background-color: #DCDCDC;
+}
 }
 </style>
 </head>
 <body>
 
 <div id="window">
-  <div id="titlebar">AIM - <span id="roomTitle">Lobby</span></div>
+  <div id="titlebar">
+    <div>AIM - <span id="roomTitle">Lobby</span></div>
+    <div id="xpButtons">
+      <div class="xpBtn">_</div>
+      <div class="xpBtn">□</div>
+      <div class="xpBtn">X</div>
+    </div>
+  </div>
 
   <div id="main">
-
     <!-- CHAT AREA -->
     <div id="chatArea">
       <div id="chat"></div>
-
       <div id="inputArea">
         Name: <input type="text" id="username" size="10"><br><br>
-
         <input type="text" id="message" placeholder="Type message...">
         <button onclick="sendMessage()">Send</button>
-
         <br><br>
-
-        <!-- 3DS-compatible upload form -->
         <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-          <!-- Hidden mirrored fields -->
           <input type="text" name="room" id="uploadRoom" class="hiddenField" required>
           <input type="text" name="user" id="uploadUser" class="hiddenField" required>
-          
           <input type="file" name="image" required><br>
           <button type="submit">Upload</button>
         </form>
@@ -156,22 +348,17 @@ button:active {
       <b>Room</b><br>
       <input type="text" id="roomInput" size="10"><br>
       <button onclick="createRoom()">Create</button>
-      <button onclick="joinRoom(document.getElementById('roomInput').value)">Join</button>
-
+      <button onclick="joinRoom()">Join</button>
       <hr>
-
       <b>Users</b>
       <div id="users"></div>
     </div>
-
   </div>
 </div>
 
 <script>
 var currentRoom="Lobby";
-var lastCount=0;
 
-/* ---------- AJAX helper ---------- */
 function xhrPost(url,data){
   var xhr=new XMLHttpRequest();
   xhr.open("POST",url,true);
@@ -179,102 +366,115 @@ function xhrPost(url,data){
   xhr.send(JSON.stringify(data));
 }
 
-/* ---------- Room Management ---------- */
+/* ---------- ROOM FUNCTIONS ---------- */
 function createRoom(){
   var name=document.getElementById("roomInput").value.trim();
-  if(!name) return;
-  xhrPost("/create-room",{name:name});
-}
-
-function joinRoom(name){
   var user=document.getElementById("username").value.trim();
-  if(!name||!user) return;
-
+  if(!user){ alert("Enter your name first."); return; }
+  if(!name){ alert("Enter a room name."); return; }
+  xhrPost("/create-room",{name:name});
+  xhrPost("/join",{room:name,user:user});
   currentRoom=name;
-  document.getElementById("roomTitle").innerHTML=name;
-  lastCount=0;
+  document.getElementById("roomTitle").innerText=name;
 }
 
-/* ---------- Send Message ---------- */
+function joinRoom(){
+  var name=document.getElementById("roomInput").value.trim();
+  var user=document.getElementById("username").value.trim();
+  if(!user){ alert("Enter your name first."); return; }
+  if(!name){ alert("Enter a room name."); return; }
+  xhrPost("/join",{room:name,user:user});
+  currentRoom=name;
+  document.getElementById("roomTitle").innerText=name;
+}
+
 function sendMessage(){
   var text=document.getElementById("message").value.trim();
   var user=document.getElementById("username").value.trim();
-  if(!text||!user) return;
-
+  if(!user){ alert("Enter your name first."); return; }
+  if(!text) return;
   xhrPost("/send",{room:currentRoom,user:user,text:text});
   document.getElementById("message").value="";
 }
 
-/* ENTER KEY SEND */
-document.getElementById("message").addEventListener("keydown", function(e){
-  if(e.key==="Enter"){
-    e.preventDefault();
-    sendMessage();
-  }
+document.getElementById("message").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){ e.preventDefault(); sendMessage(); }
 });
 
-/* ---------- Poll Messages ---------- */
-function poll(){
-  var xhr=new XMLHttpRequest();
-  xhr.open("GET","/messages?room="+currentRoom,true);
-  xhr.onload=function(){
-    var msgs=JSON.parse(xhr.responseText);
-    if(msgs.length!=lastCount){
-      var chat=document.getElementById("chat");
-      var usersBox=document.getElementById("users");
-      chat.innerHTML="";
-      var users={};
 
-      for(var i=0;i<msgs.length;i++){
-        var m=msgs[i];
-        if(m.system){
-          chat.innerHTML+="<div style='color:gray'>"+m.text+"</div>";
-        } else {
-          users[m.user]=true;
-          chat.innerHTML+="<div><b style='color:#000080'>"+m.user+":</b> "+m.text+"</div>";
-        }
+
+var currentRoom = "Lobby";
+var chat = document.getElementById("chat");
+var users = document.getElementById("users");
+var lastMessageCount = 0;
+
+// Scroll chat to bottom
+function scrollChatToBottom() {
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Poll messages
+function poll() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/messages?room=" + currentRoom, true);
+  xhr.onload = function() {
+    var data = JSON.parse(xhr.responseText);
+
+    // Only append new messages
+    var newMessages = data.messages.slice(lastMessageCount);
+    newMessages.forEach(function(m) {
+      if (m.system) {
+        var div = document.createElement("div");
+        div.style.color = "gray";
+        div.textContent = m.text;
+        chat.appendChild(div);
+      } else {
+        var div = document.createElement("div");
+        div.innerHTML = "<b style='color:#000080'>" + m.user + ":</b> " + m.text;
+        chat.appendChild(div);
       }
+    });
 
-      usersBox.innerHTML="";
-      for(var u in users){
-        usersBox.innerHTML+=u+"<br>";
-      }
+    // Update users panel
+    users.innerHTML = "";
+    data.users.forEach(function(u) { users.innerHTML += u + "<br>"; });
 
-      chat.scrollTop=chat.scrollHeight;
-      lastCount=msgs.length;
+    // Scroll to bottom if last messages were already at bottom
+    var nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 20;
+    if (nearBottom || lastMessageCount === 0) {
+      scrollChatToBottom();
     }
+
+    lastMessageCount = data.messages.length;
   };
   xhr.send();
 }
 
-/* ---------- Leave Handling ---------- */
+// Initial setup
+window.addEventListener("load", function() {
+  setTimeout(scrollChatToBottom, 100);
+  xhrPost("/create-room", {name:"Lobby"});
+  poll();
+  setInterval(poll, 1500);
+});
+
+
+
+/* ---------- LEAVE ---------- */
 function sendLeave(){
-  var user=document.getElementById("username").value;
-  if(user&&currentRoom){
-    navigator.sendBeacon("/leave", JSON.stringify({room:currentRoom,user:user}));
-  }
+  var user=document.getElementById("username").value.trim();
+  if(user){ navigator.sendBeacon("/leave",JSON.stringify({room:currentRoom,user:user})); }
 }
+window.addEventListener("beforeunload",sendLeave);
+window.addEventListener("pagehide",sendLeave);
 
-window.addEventListener("beforeunload", sendLeave);
-window.addEventListener("pagehide", sendLeave);
+/* ---------- SYNC UPLOAD ---------- */
+setInterval(function(){
+  document.getElementById("uploadUser").value = document.getElementById("username").value;
+  document.getElementById("uploadRoom").value = currentRoom;
+},500);
 
-/* ---------- Mirror username & room to hidden fields ---------- */
-function syncHiddenFields() {
-  var username = document.getElementById("username").value;
-  var room = document.getElementById("roomInput").value || currentRoom;
-
-  document.getElementById("uploadUser").value = username;
-  document.getElementById("uploadRoom").value = room;
-}
-
-// Sync on input changes
-document.getElementById("username").addEventListener("input", syncHiddenFields);
-document.getElementById("roomInput").addEventListener("input", syncHiddenFields);
-
-// Also sync periodically in case room changes programmatically
-setInterval(syncHiddenFields, 500);
-
-/* ---------- Start Polling ---------- */
+/* ---------- START ---------- */
 xhrPost("/create-room",{name:"Lobby"});
 setInterval(poll,1500);
 </script>
