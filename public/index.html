@@ -6,7 +6,6 @@
 <title>AIM XP 3DS</title>
 
 <style>
-/* General Reset */
 body {
   margin: 0;
   background: #3A6EA5;
@@ -18,7 +17,6 @@ body {
   align-items: center;
 }
 
-/* Main window with scaling */
 #window {
   width: 100%;
   max-width: 900px;
@@ -30,7 +28,6 @@ body {
   flex-direction: column;
 }
 
-/* Adjustments for small screens like 3DS or phone */
 @media (max-width: 600px) {
   #window {
     height: 100vh;
@@ -47,7 +44,6 @@ body {
   }
 }
 
-/* Title Bar */
 #titlebar {
   height: 30px;
   background: #0A246A;
@@ -57,7 +53,6 @@ body {
   font-weight: bold;
 }
 
-/* Main content area with chat and users */
 #main {
   flex: 1;
   display: flex;
@@ -66,7 +61,6 @@ body {
   overflow: hidden;
 }
 
-/* Chat Area */
 #chatArea {
   flex: 3;
   display: flex;
@@ -75,16 +69,14 @@ body {
   overflow: hidden;
 }
 
-/* Chat content itself, scrollable */
 #chat {
   flex: 1;
   background: white;
   border: 2px inset gray;
-  overflow-y: scroll;  /* Make chat scrollable */
+  overflow-y: scroll;
   padding: 5px;
 }
 
-/* Input Area */
 #inputArea {
   margin-top: 6px;
 }
@@ -93,7 +85,6 @@ body {
   width: 70%;
 }
 
-/* Users Panel */
 #usersPanel {
   flex: 1;
   background: #F4F4F4;
@@ -104,7 +95,6 @@ body {
   font-size: 12px;
 }
 
-/* Button and form styles */
 input, button {
   font-family: Tahoma;
   font-size: 14px;
@@ -122,6 +112,11 @@ button:active {
 
 #users {
   margin-top: 5px;
+}
+
+/* Hide the mirrored fields */
+.hiddenField {
+  display: none;
 }
 </style>
 </head>
@@ -144,10 +139,13 @@ button:active {
 
         <br><br>
 
-        <form id="uploadForm" enctype="multipart/form-data">
-          <input type="file" name="image">
-          <input type="hidden" name="room" id="uploadRoom">
-          <input type="hidden" name="user" id="uploadUser">
+        <!-- 3DS-compatible upload form -->
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+          <!-- Hidden mirrored fields -->
+          <input type="text" name="room" id="uploadRoom" class="hiddenField" required>
+          <input type="text" name="user" id="uploadUser" class="hiddenField" required>
+          
+          <input type="file" name="image" required><br>
           <button type="submit">Upload</button>
         </form>
       </div>
@@ -194,10 +192,6 @@ function joinRoom(name){
 
   currentRoom=name;
   document.getElementById("roomTitle").innerHTML=name;
-  document.getElementById("uploadRoom").value=name;
-  document.getElementById("uploadUser").value=user;
-
-  xhrPost("/join",{room:name,user:user});
   lastCount=0;
 }
 
@@ -253,24 +247,6 @@ function poll(){
   xhr.send();
 }
 
-/* ---------- Image Upload Handling ---------- */
-document.getElementById("uploadForm").addEventListener("submit", function(e){
-  e.preventDefault(); // Prevent page reload
-
-  var formData=new FormData(this);
-  var xhr=new XMLHttpRequest();
-  xhr.open("POST","/upload",true);
-  xhr.onload=function(){
-    if (xhr.status == 200) {
-      console.log("File uploaded successfully.");
-      document.querySelector("input[name='image']").value="";
-    } else {
-      console.error("Upload failed.");
-    }
-  };
-  xhr.send(formData);
-});
-
 /* ---------- Leave Handling ---------- */
 function sendLeave(){
   var user=document.getElementById("username").value;
@@ -281,6 +257,22 @@ function sendLeave(){
 
 window.addEventListener("beforeunload", sendLeave);
 window.addEventListener("pagehide", sendLeave);
+
+/* ---------- Mirror username & room to hidden fields ---------- */
+function syncHiddenFields() {
+  var username = document.getElementById("username").value;
+  var room = document.getElementById("roomInput").value || currentRoom;
+
+  document.getElementById("uploadUser").value = username;
+  document.getElementById("uploadRoom").value = room;
+}
+
+// Sync on input changes
+document.getElementById("username").addEventListener("input", syncHiddenFields);
+document.getElementById("roomInput").addEventListener("input", syncHiddenFields);
+
+// Also sync periodically in case room changes programmatically
+setInterval(syncHiddenFields, 500);
 
 /* ---------- Start Polling ---------- */
 xhrPost("/create-room",{name:"Lobby"});
