@@ -368,14 +368,24 @@ function xhrPost(url,data){
 
 /* ---------- ROOM FUNCTIONS ---------- */
 function createRoom(){
-  var name=document.getElementById("roomInput").value.trim();
-  var user=document.getElementById("username").value.trim();
+  var name = document.getElementById("roomInput").value.trim();
+  var user = document.getElementById("username").value.trim();
   if(!user){ alert("Enter your name first."); return; }
   if(!name){ alert("Enter a room name."); return; }
-  xhrPost("/create-room",{name:name});
-  xhrPost("/join",{room:name,user:user});
-  currentRoom=name;
-  document.getElementById("roomTitle").innerText=name;
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/create-room", true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      alert("Room created successfully!");
+    } else if (xhr.status === 409) {
+      alert("Room already exists! Choose a different name.");
+    } else {
+      alert("Error creating room.");
+    }
+  };
+  xhr.send(JSON.stringify({ name: name }));
 }
 
 function joinRoom(){
