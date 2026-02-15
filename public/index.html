@@ -615,41 +615,72 @@ document.getElementById("message").addEventListener("keydown", function(e){
 function scrollChatToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
+// Simple 3DS-compatible linkify function
+function appendMessage(m) {
+    var div = document.createElement("div");
+    div.style.wordBreak = "break-word";
+    div.style.marginBottom = "2px";
 
-// Poll messages
-function poll() {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/messages?room=" + currentRoom, true);
-  xhr.onload = function() {
-    var data = JSON.parse(xhr.responseText);
-
-    // Only append new messages
-    var newMessages = data.messages.slice(lastMessageCount);
-    newMessages.forEach(function(m) {
-      var div = document.createElement("div");
-      if (m.system) {
+    if (m.system) {
         div.style.color = "gray";
-        div.textContent = m.text;
-      } else {
-        div.innerHTML = "<b style='color:#000080'>" + m.user + ":</b> " + m.text;
-      }
-      chat.appendChild(div);
-    });
+        div.appendChild(document.createTextNode(m.text));
+    } else {
+        // Username part
+        var b = document.createElement("b");
+        b.style.color = "#000080";
+        b.appendChild(document.createTextNode(m.user + ": "));
+        div.appendChild(b);
 
-    // Update users panel
-    users.innerHTML = "";
-    data.users.forEach(function(u) { users.innerHTML += u + "<br>"; });
-
-    // Scroll to bottom if last messages were already at bottom
-    var nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 20;
-    if (nearBottom || lastMessageCount === 0) {
-      scrollChatToBottom();
+        // Message part with clickable links
+        var words = m.text.split(" ");
+        for (var i = 0; i < words.length; i++) {
+            var word = words[i];
+            // Simple URL/domain detection
+            if (/^(https?:\/\/|www\.)[^\s]+$/i.test(word)) {
+                var a = document.createElement("a");
+                a.href = word.indexOf("http") === 0 ? word : "https://" + word;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.appendChild(document.createTextNode(word));
+                div.appendChild(a);
+            } else {
+                div.appendChild(document.createTextNode(word));
+            }
+            if (i < words.length - 1) div.appendChild(document.createTextNode(" "));
+        }
     }
 
-    lastMessageCount = data.messages.length;
-  };
-  xhr.send();
+    chat.appendChild(div);
 }
+
+// Poll messages (3DS compatible)
+function poll() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/messages?room=" + currentRoom, true);
+    xhr.onload = function() {
+        var data = JSON.parse(xhr.responseText);
+        var newMessages = data.messages.slice(lastMessageCount);
+
+        for (var i = 0; i < newMessages.length; i++) {
+            appendMessage(newMessages[i]);
+        }
+
+        // Update users panel
+        users.innerHTML = "";
+        for (var j = 0; j < data.users.length; j++) {
+            users.appendChild(document.createTextNode(data.users[j]));
+            users.appendChild(document.createElement("br"));
+        }
+
+        // Scroll to bottom if near bottom
+        var nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 20;
+        if (nearBottom || lastMessageCount === 0) chat.scrollTop = chat.scrollHeight;
+
+        lastMessageCount = data.messages.length;
+    };
+    xhr.send();
+}
+
 
 // Initial setup
 window.addEventListener("load", function() {
