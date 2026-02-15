@@ -708,5 +708,15 @@ setInterval(function(){
 
 </script>
 
+ <script>
+    // Check the User-Agent string
+    const userAgent = navigator.userAgent;
+
+    // If it's not a Nintendo 3DS, redirect to index1.html
+    if (!userAgent.includes("Nintendo 3DS")) {
+      window.location.href = "index1.html"; // Redirect to index1.html
+    }
+  </script>
+  
 </body>
 </html>
