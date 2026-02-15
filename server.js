@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
+const { exec } = require("child_process");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -155,51 +156,83 @@ app.post("/send", (req, res) => {
   res.sendStatus(200);
 });
 
-/* ---------- IMAGE UPLOAD ---------- */
+/* ---------- UPLOAD (IMAGES + VIDEOS) ---------- */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + "-" + Math.random().toString(36).slice(2) + ".jpg")
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.startsWith("video/") ? path.extname(file.originalname) || ".avi" : ".jpg";
+    cb(null, Date.now() + "-" + Math.random().toString(36).slice(2) + ext);
+  }
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (req, file, cb) =>
-    cb(null, file.mimetype.startsWith("image/"))
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null,
+    file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")
+  )
 });
 
 app.post("/upload", upload.single("image"), async (req, res) => {
   try {
     const { room, user } = req.body;
-    if (!room || !user || !req.file)
-      return res.sendStatus(400);
+    if (!room || !user || !req.file) return res.sendStatus(400);
 
     joinUser(room.trim(), user.trim());
 
-    const outputName = Date.now() + ".jpg";
-    const outputPath = path.join("uploads", outputName);
+    const isVideo = req.file.mimetype.startsWith("video/");
+    const inputPath = req.file.path;
 
-    await sharp(req.file.path)
-      .resize({ width: 400 })
-      .jpeg({ quality: 70 })
-      .toFile(outputPath);
+    if (isVideo) {
+      const outputName = Date.now() + ".avi";
+      const outputPath = path.join("uploads", outputName);
 
-    fs.unlinkSync(req.file.path);
+      // FFmpeg conversion for 3DS
+      const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -s 400x240 -aspect 2:1 -r 20 -vcodec mjpeg -qscale 1 -acodec adpcm_ima_wav -ac 2 "${outputPath}"`;
 
-    const imageUrl = "/uploads/" + outputName;
+      await new Promise((resolve, reject) => {
+        exec(ffmpegCmd, (err, stdout, stderr) => {
+          if (err) {
+            console.error("FFmpeg failed:", err);
+            console.error(stderr);
+            return reject(err);
+          }
+          resolve();
+        });
+      });
 
-    addMessage(room.trim(), {
-      system: false,
-      user: user.trim(),
-      text:
-        timestamp() +
-        `<br><a href="${imageUrl}" target="_blank"><img src="${imageUrl}" width="150"></a>`
-    });
+      fs.unlinkSync(inputPath);
+      const mediaUrl = "/uploads/" + outputName;
+
+      addMessage(room.trim(), {
+        system: false,
+        user: user.trim(),
+        text: timestamp() + `<a href="${mediaUrl}" target="_blank">[VIDEO ATTACHMENT]</a>`
+      });
+
+    } else {
+      // Image processing
+      const outputName = Date.now() + ".jpg";
+      const outputPath = path.join("uploads", outputName);
+
+      await sharp(inputPath)
+        .resize({ width: 400 })
+        .jpeg({ quality: 70 })
+        .toFile(outputPath);
+
+      fs.unlinkSync(inputPath);
+      const imageUrl = "/uploads/" + outputName;
+
+      addMessage(room.trim(), {
+        system: false,
+        user: user.trim(),
+        text: timestamp() + `<br><a href="${imageUrl}" target="_blank"><img src="${imageUrl}" width="150"></a>`
+      });
+    }
 
     lastActive[room.trim()][user.trim()] = Date.now();
-
     res.redirect("/");
+
   } catch (err) {
     console.error(err);
     res.sendStatus(500);
@@ -221,6 +254,4 @@ setInterval(() => {
 /* ---------- START ---------- */
 ensureRoom("Lobby");
 
-app.listen(PORT, () =>
-  console.log("AIM XP 3DS running on port " + PORT)
-);
+app.listen(PORT, () => console.log("AIM XP 3DS running on port " + PORT));
