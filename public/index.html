@@ -543,12 +543,18 @@ button:active {
 </div>
 
 <script>
-var currentRoom="Lobby";
+var currentRoom = "Lobby";
+var chat = document.getElementById("chat");
+var users = document.getElementById("users");
+var lastMessageCount = 0;
 
-function xhrPost(url,data){
-  var xhr=new XMLHttpRequest();
-  xhr.open("POST",url,true);
-  xhr.setRequestHeader("Content-Type","application/json");
+// Keep track of rooms created by this user
+var myRooms = ["Lobby"]; // Lobby is default
+
+function xhrPost(url, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
   xhr.send(JSON.stringify(data));
 }
 
@@ -565,6 +571,7 @@ function createRoom(){
   xhr.onload = function() {
     if (xhr.status === 200) {
       alert("Room created successfully!");
+      myRooms.push(name); // add room to user's created list
     } else if (xhr.status === 409) {
       alert("Room already exists! Choose a different name.");
     } else {
@@ -575,34 +582,34 @@ function createRoom(){
 }
 
 function joinRoom(){
-  var name=document.getElementById("roomInput").value.trim();
-  var user=document.getElementById("username").value.trim();
+  var name = document.getElementById("roomInput").value.trim();
+  var user = document.getElementById("username").value.trim();
   if(!user){ alert("Enter your name first."); return; }
   if(!name){ alert("Enter a room name."); return; }
-  xhrPost("/join",{room:name,user:user});
-  currentRoom=name;
-  document.getElementById("roomTitle").innerText=name;
+
+  // Only allow joining rooms that the user created
+  if(!myRooms.includes(name)){
+    alert("You cannot join a room you haven't created!");
+    return;
+  }
+
+  xhrPost("/join", {room: name, user: user});
+  currentRoom = name;
+  document.getElementById("roomTitle").innerText = name;
 }
 
 function sendMessage(){
-  var text=document.getElementById("message").value.trim();
-  var user=document.getElementById("username").value.trim();
+  var text = document.getElementById("message").value.trim();
+  var user = document.getElementById("username").value.trim();
   if(!user){ alert("Enter your name first."); return; }
   if(!text) return;
-  xhrPost("/send",{room:currentRoom,user:user,text:text});
-  document.getElementById("message").value="";
+  xhrPost("/send", {room: currentRoom, user: user, text: text});
+  document.getElementById("message").value = "";
 }
 
-document.getElementById("message").addEventListener("keydown",function(e){
-  if(e.key==="Enter"){ e.preventDefault(); sendMessage(); }
+document.getElementById("message").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){ e.preventDefault(); sendMessage(); }
 });
-
-
-
-var currentRoom = "Lobby";
-var chat = document.getElementById("chat");
-var users = document.getElementById("users");
-var lastMessageCount = 0;
 
 // Scroll chat to bottom
 function scrollChatToBottom() {
@@ -619,16 +626,14 @@ function poll() {
     // Only append new messages
     var newMessages = data.messages.slice(lastMessageCount);
     newMessages.forEach(function(m) {
+      var div = document.createElement("div");
       if (m.system) {
-        var div = document.createElement("div");
         div.style.color = "gray";
         div.textContent = m.text;
-        chat.appendChild(div);
       } else {
-        var div = document.createElement("div");
         div.innerHTML = "<b style='color:#000080'>" + m.user + ":</b> " + m.text;
-        chat.appendChild(div);
       }
+      chat.appendChild(div);
     });
 
     // Update users panel
@@ -654,25 +659,20 @@ window.addEventListener("load", function() {
   setInterval(poll, 1500);
 });
 
-
-
 /* ---------- LEAVE ---------- */
 function sendLeave(){
   var user=document.getElementById("username").value.trim();
   if(user){ navigator.sendBeacon("/leave",JSON.stringify({room:currentRoom,user:user})); }
 }
-window.addEventListener("beforeunload",sendLeave);
-window.addEventListener("pagehide",sendLeave);
+window.addEventListener("beforeunload", sendLeave);
+window.addEventListener("pagehide", sendLeave);
 
 /* ---------- SYNC UPLOAD ---------- */
 setInterval(function(){
   document.getElementById("uploadUser").value = document.getElementById("username").value;
   document.getElementById("uploadRoom").value = currentRoom;
-},500);
+}, 500);
 
-/* ---------- START ---------- */
-xhrPost("/create-room",{name:"Lobby"});
-setInterval(poll,1500);
 </script>
 
 </body>
