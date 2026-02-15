@@ -251,16 +251,6 @@ setInterval(() => {
   }
 }, 5000);
 
-/* ---------- SERVE INDEX1.HTML FOR NON-3DS USER AGENT (AT THE END) ---------- */
-app.use((req, res, next) => {
-  const userAgent = req.get("User-Agent");
-  if (!userAgent || !userAgent.includes("3DS")) {
-    res.sendFile(path.join(__dirname, "public/index1.html"));
-  } else {
-    next(); // Continue processing for 3DS requests
-  }
-});
-
 /* ---------- START ---------- */
 ensureRoom("Lobby");
 
