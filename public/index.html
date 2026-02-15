@@ -615,6 +615,7 @@ document.getElementById("message").addEventListener("keydown", function(e){
 function scrollChatToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
+
 // Simple 3DS-compatible linkify function
 function appendMessage(m) {
     var div = document.createElement("div");
@@ -680,7 +681,6 @@ function poll() {
     };
     xhr.send();
 }
-
 
 // Initial setup
 window.addEventListener("load", function() {
