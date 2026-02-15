@@ -612,12 +612,20 @@ document.getElementById("message").addEventListener("keydown", function(e){
   if(e.key === "Enter"){ e.preventDefault(); sendMessage(); }
 });
 
-// Scroll chat to bottom
-function scrollChatToBottom() {
-  chat.scrollTop = chat.scrollHeight;
+var isUserAtBottom = true;
+var chat = document.getElementById("chat");
+
+// Function to check if the user is at the bottom of the chat
+function checkIfUserAtBottom() {
+    isUserAtBottom = (chat.scrollHeight - chat.scrollTop === chat.clientHeight);
 }
 
-// Simple 3DS-compatible linkify function
+// Scroll chat to the bottom
+function scrollChatToBottom() {
+    chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat container
+}
+
+// Append a new message to the chat
 function appendMessage(m) {
     var div = document.createElement("div");
     div.style.wordBreak = "break-word";
@@ -627,10 +635,9 @@ function appendMessage(m) {
         div.style.color = "gray";
         div.textContent = m.text;
     } else {
-
         var text = m.text;
 
-        // Convert http & https links
+        // Convert URLs into clickable links
         text = text.replace(
             /(https?:\/\/[^\s]+)/gi,
             function(url) {
@@ -638,15 +645,7 @@ function appendMessage(m) {
             }
         );
 
-        // Convert www. links (that don’t already start with http)
-        text = text.replace(
-            /(^|[\s])(www\.[^\s]+)/gi,
-            function(match, space, url) {
-                return space + '<a href="https://' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
-            }
-        );
-
-        // Render username + message
+        // Render the message with the user and content
         div.innerHTML =
             "<b style='color:#000080'>" +
             m.user +
@@ -654,8 +653,41 @@ function appendMessage(m) {
             text;
     }
 
-    chat.appendChild(div);
+    chat.appendChild(div);  // Add the message to the chat container
+    if (isUserAtBottom) {
+        scrollChatToBottom();  // Scroll to the bottom if the user was already at the bottom
+    }
 }
+
+// Polling function to check for new messages
+function poll() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/messages?room=" + currentRoom, true);
+    xhr.onload = function() {
+        var data = JSON.parse(xhr.responseText);
+        var newMessages = data.messages.slice(lastMessageCount);
+
+        for (var i = 0; i < newMessages.length; i++) {
+            appendMessage(newMessages[i]);  // Append new message
+        }
+
+        lastMessageCount = data.messages.length;  // Update message count
+    };
+    xhr.send();
+}
+
+// Add an event listener for scroll behavior (user scrolls up)
+chat.addEventListener("scroll", function() {
+    checkIfUserAtBottom();  // Check if the user is manually scrolling
+});
+
+// Set an interval to continuously poll for new messages every 1.5 seconds
+setInterval(poll, 1500);
+
+// Ensure the chat scrolls to the bottom after the page loads
+window.addEventListener("load", function() {
+    setTimeout(scrollChatToBottom, 100);  // Wait for the chat to load, then scroll
+});
 
 
 var originalTitle = "3DS Web Chat"; // Default title
