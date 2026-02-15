@@ -616,32 +616,6 @@ function scrollChatToBottom() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Function to convert URLs and domain names in text to clickable links
-function linkify(text) {
-  // Regex for full URLs (http:// or https://)
-  var urlPattern = /(https?:\/\/[^\s]+)/g;
-
-  // Regex for domain names without protocol (www.example.com or example.com)
-  var domainPattern = /(\b(?:www\.)?[a-z0-9-]+\.[a-z]{2,}(?:\/[^\s]*)?)/gi;
-
-  // First, replace full URLs
-  text = text.replace(urlPattern, function(url) {
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-  });
-
-  // Then, replace domains that are not already inside a link
-  text = text.replace(domainPattern, function(domain) {
-    // Skip if already wrapped in an <a> tag
-    if (/<a\s/.test(domain)) return domain;
-    // Prepend https://
-    var href = domain.startsWith("http") ? domain : "https://" + domain;
-    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${domain}</a>`;
-  });
-
-  return text;
-}
-
-
 // Poll messages
 function poll() {
   var xhr = new XMLHttpRequest();
@@ -657,8 +631,7 @@ function poll() {
         div.style.color = "gray";
         div.textContent = m.text;
       } else {
-        // Convert URLs to clickable links
-        div.innerHTML = `<b style='color:#000080'>${m.user}:</b> ${linkify(m.text)}`;
+        div.innerHTML = "<b style='color:#000080'>" + m.user + ":</b> " + m.text;
       }
       chat.appendChild(div);
     });
@@ -677,7 +650,6 @@ function poll() {
   };
   xhr.send();
 }
-
 
 // Initial setup
 window.addEventListener("load", function() {
