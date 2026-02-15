@@ -624,31 +624,33 @@ function appendMessage(m) {
 
     if (m.system) {
         div.style.color = "gray";
-        div.appendChild(document.createTextNode(m.text));
+        div.textContent = m.text;
     } else {
-        // Username part
-        var b = document.createElement("b");
-        b.style.color = "#000080";
-        b.appendChild(document.createTextNode(m.user + ": "));
-        div.appendChild(b);
 
-        // Message part with clickable links
-        var words = m.text.split(" ");
-        for (var i = 0; i < words.length; i++) {
-            var word = words[i];
-            // Simple URL/domain detection
-            if (/^(https?:\/\/|www\.)[^\s]+$/i.test(word)) {
-                var a = document.createElement("a");
-                a.href = word.indexOf("http") === 0 ? word : "https://" + word;
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-                a.appendChild(document.createTextNode(word));
-                div.appendChild(a);
-            } else {
-                div.appendChild(document.createTextNode(word));
+        var text = m.text;
+
+        // Convert http & https links
+        text = text.replace(
+            /(https?:\/\/[^\s]+)/gi,
+            function(url) {
+                return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
             }
-            if (i < words.length - 1) div.appendChild(document.createTextNode(" "));
-        }
+        );
+
+        // Convert www. links (that don’t already start with http)
+        text = text.replace(
+            /(^|[\s])(www\.[^\s]+)/gi,
+            function(match, space, url) {
+                return space + '<a href="https://' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+            }
+        );
+
+        // Render username + message
+        div.innerHTML =
+            "<b style='color:#000080'>" +
+            m.user +
+            ":</b> " +
+            text;
     }
 
     chat.appendChild(div);
