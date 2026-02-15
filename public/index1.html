@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3DS Web Chat</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #3A6EA5;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  font-family: Tahoma;
+  font-size: 14px;
+}
+
+/* XP WINDOW */
+#window {
+  width: 1200px;
+  max-width: 95%;
+  height: 800px;
+  max-height: 95%;
+  background: #ECE9D8;
+  border: 2px solid #0A246A;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* ---------- XP Buttons - all devices ---------- */
+#xpButtons {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    white-space: nowrap; /* keep buttons horizontal */
+    display: flex;
+    gap: 2px;           /* spacing between buttons */
+}
+
+#xpButtons .xpBtn {
+    display: inline-block;
+    width: 22px;        /* slightly bigger for PC/mobile */
+    height: 22px;
+    line-height: 22px;  /* center text */
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+
+    border: 2px outset gray;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 12px;
+    background-color: #ECE9D8; /* classic XP button background */
+    color: white;               /* text color white */
+}
+
+/* Individual button colors */
+#xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
+#xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
+#xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
+
+/* Hover effect for PC / bigger screens */
+#xpButtons .xpBtn:hover {
+    background-color: #D0D0D0;
+}
+
+/* Pressed effect */
+#xpButtons .xpBtn:active {
+    border: 2px inset gray;
+    background-color: #B8B8B8;
+}
+
+/* TITLEBAR */
+#titlebar {
+  width: 100%;
+  height: 30px;
+  background: #0A246A;
+  color: white;
+  line-height: 30px;
+  padding-left: 10px;
+  font-weight: bold;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+
+
+/* MAIN (Chat + Users) */
+#main {
+  flex: 1;
+  display: flex;
+  padding: 6px;
+  gap: 6px;
+  overflow: hidden;
+}
+
+/* CHAT AREA */
+#chatArea {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  overflow: hidden;
+}
+
+#chat {
+  flex: 1;
+  background: white;
+  border: 2px inset gray;
+  overflow-y: scroll;
+  padding: 5px;
+}
+
+#inputArea {
+  margin-top: 6px;
+}
+
+#inputArea input[type="text"] {
+  width: 70%;
+}
+
+/* USERS PANEL */
+#usersPanel {
+  flex: 1;
+  background: #F4F4F4;
+  border: 2px inset gray;
+  padding: 6px;
+  overflow-y: auto;
+  min-width: 180px;
+  font-size: 12px;
+}
+
+/* BUTTONS */
+input, button {
+  font-family: Tahoma;
+  font-size: 14px;
+}
+
+button {
+  border: 2px outset gray;
+  background: #ECE9D8;
+  cursor: pointer;
+}
+
+button:active {
+  border: 2px inset gray;
+}
+
+#users {
+  margin-top: 5px;
+}
+
+/* Hide mirrored fields */
+.hiddenField { display: none; }
+
+/* --- 3DS / small screens (stacked dual-screen) --- */
+
+
+@media (max-width: 400px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 800px; /* double height page */
+    overflow: hidden;
+    background: #ECE9D8;
+  }
+
+  #window {
+    position: relative;
+    width: 100%;
+    height: 800px;
+    border: none;
+    box-sizing: border-box;
+  }
+
+
+  /* TOP SCREEN = Chat UI */
+  #topScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 210px; /* slightly smaller top screen */
+    display: flex;
+    flex-direction: column;
+  }
+
+
+  #titlebar {
+    height: 30px;
+    background: #0A246A;
+    color: white;
+    line-height: 30px;
+    padding-left: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* title stays left */
+    position: relative;
+  }
+
+  #chatArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    overflow: hidden;
+  }
+
+  #chat {
+    height: 160px; /* slightly smaller chat */
+    background: white;
+    border: 2px inset gray;
+    overflow-y: scroll;
+    padding: 5px;
+  }
+
+  /* BOTTOM SCREEN = Users + input + upload */
+  #bottomScreen {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 590px; /* remaining bottom screen */
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+    background: #F4F4F4;
+  }
+
+  #inputArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #usersPanel {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 5px;
+    border: 2px inset gray;
+    padding: 5px;
+    background: #F4F4F4;
+  }
+
+  input, button {
+    font-family: Tahoma;
+    font-size: 14px;
+  }
+
+  button {
+    border: 2px outset gray;
+    background: #ECE9D8;
+    cursor: pointer;
+  }
+
+  button:active {
+    border: 2px inset gray;
+  }
+
+  .hiddenField {
+    display: none;
+  }
+
+
+  #xpButtons {
+    position: absolute;
+    top: 3px;   /* adjust vertical position */
+    right: 3px; /* adjust horizontal position */
+    white-space: nowrap; /* prevent wrapping */
+  }
+
+#xpButtons .xpBtn {
+    display: inline-block;
+    width: 18px;        /* smaller width */
+    height: 18px;       /* smaller height */
+    line-height: 18px;  /* vertically center text */
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 1px;   /* minimal spacing */
+    box-sizing: border-box;
+
+    border: 2px outset gray;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 10px;       /* smaller font so X fits */
+    background-color: #ECE9D8;
+    color: white;
+}
+
+/* Individual button colors */
+#xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
+#xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
+#xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
+
+/* Pressed effect */
+#xpButtons .xpBtn:active {
+    border: 2px inset gray;
+    background-color: #DCDCDC;
+}
+}
+
+@media (min-width: 401px) and (max-width: 600px) {
+  html, body {
+    height: 100vh;
+    overflow: hidden;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #window {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #titlebar {
+    height: 30px;
+    line-height: 30px;
+    padding-left: 6px;
+    font-weight: bold;
+  }
+
+  /* Top screen = chat */
+  #topScreen, #chatArea {
+    flex: 0 0 55%; /* slightly smaller than 3DS */
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    border: 2px inset gray;
+    padding: 4px;
+  }
+
+  #inputArea {
+    flex: 0 0 auto;
+    margin-top: 4px;
+  }
+
+  /* Bottom screen = users + input */
+  #bottomScreen, #usersPanel {
+    flex: 0 0 45%;
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    overflow-y: auto;
+    background: #F4F4F4;
+  }
+
+  #xpButtons .xpBtn {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+}
+
+
+
+/* ---------- MOBILE ONLY ---------- */
+@media (min-width: 360px) and (max-width: 600px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    font-family: Tahoma, sans-serif;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    background: #ECE9D8;
+  }
+
+  #window {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  #titlebar {
+    height: 30px;
+    line-height: 30px;
+    padding-left: 8px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* CHAT AREA */
+  #chatArea {
+    flex: 1 1 auto;          /* flexible, fills available space */
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  #chat {
+    flex: 1 1 auto;          /* chat expands fully */
+    background: white;
+    border: 2px inset gray;
+    overflow-y: auto;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  /* USERS + INPUT AREA at bottom */
+  #usersPanel {
+    flex: 0 0 120px;         /* enough height to see users */
+    overflow-y: auto;
+    border: 2px inset gray;
+    padding: 4px;
+    background: #F4F4F4;
+  }
+
+  #inputArea {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  #inputArea input[type="text"]#message {
+    width: 100%;
+    height: 50px;           /* bigger typing box */
+    font-size: 16px;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  #inputArea input[type="text"]#username {
+    width: 100%;
+    height: 30px;
+    font-size: 14px;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+
+  #inputArea button {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  #uploadForm input[type="file"], #uploadForm button {
+    width: 100%;
+    font-size: 14px;
+    margin-top: 4px;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  /* XP BUTTONS */
+  #xpButtons {
+    top: 3px;
+    right: 3px;
+    position: absolute;
+  }
+
+  #xpButtons .xpBtn {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+}
+
+
+</style>
+</head>
+<body>
+
+<div id="window">
+  <div id="titlebar">
+    <div>AIM - <span id="roomTitle">Lobby</span></div>
+    <div id="xpButtons">
+      <div class="xpBtn">_</div>
+      <div class="xpBtn">□</div>
+      <div class="xpBtn">X</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- CHAT AREA -->
+    <div id="chatArea">
+      <div id="chat"></div>
+      <div id="inputArea">
+        Name: <input type="text" id="username" size="10"><br><br>
+        <input type="text" id="message" placeholder="Type message...">
+        <button onclick="sendMessage()">Send</button>
+        <br><br>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+          <input type="text" name="room" id="uploadRoom" class="hiddenField" required>
+          <input type="text" name="user" id="uploadUser" class="hiddenField" required>
+          <input type="file" name="image" required><br>
+          <button type="submit">Upload</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- USERS PANEL -->
+    <div id="usersPanel">
+      <b>Room</b><br>
+      <input type="text" id="roomInput" size="10"><br>
+      <button onclick="createRoom()">Create</button>
+      <button onclick="joinRoom()">Join</button>
+      <hr>
+      <b>Users</b>
+      <div id="users"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentRoom = "Lobby";
+var chat = document.getElementById("chat");
+var users = document.getElementById("users");
+var lastMessageCount = 0;
+
+// Keep track of rooms created by this user
+var myRooms = ["Lobby"]; // Lobby is default
+
+function xhrPost(url, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(JSON.stringify(data));
+}
+
+/* ---------- ROOM FUNCTIONS ---------- */
+function createRoom(){
+  var name = document.getElementById("roomInput").value.trim();
+  var user = document.getElementById("username").value.trim();
+  if(!user){ alert("Enter your name first."); return; }
+  if(!name){ alert("Enter a room name."); return; }
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/create-room", true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      alert("Room created successfully!");
+      myRooms.push(name); // add room to user's created list
+    } else if (xhr.status === 409) {
+      alert("Room already exists! Choose a different name.");
+    } else {
+      alert("Error creating room.");
+    }
+  };
+  xhr.send(JSON.stringify({ name: name }));
+}
+
+function joinRoom(){
+  var name = document.getElementById("roomInput").value.trim();
+  var user = document.getElementById("username").value.trim();
+  if(!user){ alert("Enter your name first."); return; }
+  if(!name){ alert("Enter a room name."); return; }
+
+  // Only allow joining rooms that the user created
+  if(!myRooms.includes(name)){
+    alert("You cannot join a room you haven't created!");
+    return;
+  }
+
+  xhrPost("/join", {room: name, user: user});
+  currentRoom = name;
+  document.getElementById("roomTitle").innerText = name;
+}
+
+function sendMessage(){
+  var text = document.getElementById("message").value.trim();
+  var user = document.getElementById("username").value.trim();
+  if(!user){ alert("Enter your name first."); return; }
+  if(!text) return;
+  xhrPost("/send", {room: currentRoom, user: user, text: text});
+  document.getElementById("message").value = "";
+}
+
+document.getElementById("message").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){ e.preventDefault(); sendMessage(); }
+});
+
+// Scroll chat to bottom
+function scrollChatToBottom() {
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Simple 3DS-compatible linkify function
+function appendMessage(m) {
+    var div = document.createElement("div");
+    div.style.wordBreak = "break-word";
+    div.style.marginBottom = "2px";
+
+    if (m.system) {
+        div.style.color = "gray";
+        div.appendChild(document.createTextNode(m.text));
+    } else {
+        // Username part
+        var b = document.createElement("b");
+        b.style.color = "#000080";
+        b.appendChild(document.createTextNode(m.user + ": "));
+        div.appendChild(b);
+
+        // Message part with clickable links
+        var words = m.text.split(" ");
+        for (var i = 0; i < words.length; i++) {
+            var word = words[i];
+            // Simple URL/domain detection
+            if (/^(https?:\/\/|www\.)[^\s]+$/i.test(word)) {
+                var a = document.createElement("a");
+                a.href = word.indexOf("http") === 0 ? word : "https://" + word;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.appendChild(document.createTextNode(word));
+                div.appendChild(a);
+            } else {
+                div.appendChild(document.createTextNode(word));
+            }
+            if (i < words.length - 1) div.appendChild(document.createTextNode(" "));
+        }
+    }
+
+    chat.appendChild(div);
+}
+
+var originalTitle = "3DS Web Chat"; // Default title
+var unreadMessageCount = 0; // Track the number of unread messages
+
+// Function to update the title with unread message count and room name
+function updateTitleWithMessageCount(newMessageCount) {
+    unreadMessageCount += newMessageCount; // Accumulate unread message count
+    document.title = `(${unreadMessageCount}) - ${currentRoom}`; // Update title with unread count and current room name
+}
+
+// Reset the title back to the original when the user interacts
+function resetTitle() {
+    unreadMessageCount = 0; // Reset unread messages count
+    document.title = `${currentRoom}`; // Set title to current room name
+}
+
+// Poll for new messages
+function poll() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/messages?room=" + currentRoom, true);
+    xhr.onload = function() {
+        var data = JSON.parse(xhr.responseText);
+        var newMessages = data.messages.slice(lastMessageCount);
+
+        for (var i = 0; i < newMessages.length; i++) {
+            appendMessage(newMessages[i]);
+        }
+
+        // Update users panel
+        users.innerHTML = "";
+        for (var j = 0; j < data.users.length; j++) {
+            users.appendChild(document.createTextNode(data.users[j]));
+            users.appendChild(document.createElement("br"));
+        }
+
+        // Scroll to bottom if near bottom
+        var nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 20;
+        if (nearBottom || lastMessageCount === 0) chat.scrollTop = chat.scrollHeight;
+
+        lastMessageCount = data.messages.length;
+
+        // If there are new messages, update the title
+        if (newMessages.length > 0) {
+            updateTitleWithMessageCount(newMessages.length);
+        }
+    };
+    xhr.send();
+}
+
+// Add event listener to reset the title when the user interacts with the chat
+document.getElementById("chat").addEventListener("scroll", resetTitle);
+document.getElementById("chat").addEventListener("click", resetTitle);
+document.getElementById("message").addEventListener("focus", resetTitle);
+
+// Initial setup to check messages and poll
+window.addEventListener("load", function() {
+  setTimeout(scrollChatToBottom, 100);
+  xhrPost("/create-room", {name:"Lobby"});
+  poll();
+  setInterval(poll, 1500);
+});
+
+
+
+/* ---------- LEAVE ---------- */
+function sendLeave(){
+  var user=document.getElementById("username").value.trim();
+  if(user){ navigator.sendBeacon("/leave",JSON.stringify({room:currentRoom,user:user})); }
+}
+window.addEventListener("beforeunload", sendLeave);
+window.addEventListener("pagehide", sendLeave);
+
+/* ---------- SYNC UPLOAD ---------- */
+setInterval(function(){
+  document.getElementById("uploadUser").value = document.getElementById("username").value;
+  document.getElementById("uploadRoom").value = currentRoom;
+}, 500);
+
+</script>
+
+</body>
+</html>
