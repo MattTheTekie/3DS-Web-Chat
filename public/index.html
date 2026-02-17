@@ -178,8 +178,7 @@
     <div id="usersPanel">
       <b>Room</b><br>
       <input type="text" id="roomInput" size="10"><br>
-      <button onclick="createRoom()">Create</button>
-      <button onclick="joinRoom()">Join</button>
+      <button onclick="joinRoom()">Create & Join</button>
       <hr>
       <b>Users</b>
       <div id="users"></div>
@@ -227,20 +226,13 @@ function createRoom(){
 }
 
 function joinRoom(){
-  var name = document.getElementById("roomInput").value.trim();
-  var user = document.getElementById("username").value.trim();
+  var name=document.getElementById("roomInput").value.trim();
+  var user=document.getElementById("username").value.trim();
   if(!user){ alert("Enter your name first."); return; }
   if(!name){ alert("Enter a room name."); return; }
-
-  // Only allow joining rooms that the user created
-  if(!myRooms.includes(name)){
-    alert("You cannot join a room you haven't created!");
-    return;
-  }
-
-  xhrPost("/join", {room: name, user: user});
-  currentRoom = name;
-  document.getElementById("roomTitle").innerText = name;
+  xhrPost("/join",{room:name,user:user});
+  currentRoom=name;
+  document.getElementById("roomTitle").innerText=name;
 }
 
 function setCookie(name, value, days) {
