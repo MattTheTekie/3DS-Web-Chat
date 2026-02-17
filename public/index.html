@@ -598,14 +598,60 @@ function joinRoom(){
   document.getElementById("roomTitle").innerText = name;
 }
 
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));  // Expiration time
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function eraseCookie(name) {
+  document.cookie = name + '=; Max-Age=-99999999; path=/';
+}
+
+// Check if a username is saved in cookies
+window.addEventListener("load", function() {
+  var savedUsername = getCookie("username");
+  if (savedUsername) {
+    document.getElementById("username").value = savedUsername;  // Pre-fill username if it exists
+  }
+});
+
+// When the user changes the username, update the cookie
+document.getElementById("username").addEventListener("change", function() {
+  var newUsername = document.getElementById("username").value.trim();
+  if (newUsername) {
+    setCookie("username", newUsername, 365);  // Save the new username in the cookie for 365 days
+  }
+});
+
 function sendMessage(){
+  var username = document.getElementById("username").value.trim();
+  if(!username){ alert("Enter your name first."); return; }
+
+  setCookie("username", username, 365);  // Update cookie with the current username
+
   var text = document.getElementById("message").value.trim();
-  var user = document.getElementById("username").value.trim();
-  if(!user){ alert("Enter your name first."); return; }
   if(!text) return;
-  xhrPost("/send", {room: currentRoom, user: user, text: text});
+
+  xhrPost("/send", {room: currentRoom, user: username, text: text});
   document.getElementById("message").value = "";
 }
+
 
 document.getElementById("message").addEventListener("keydown", function(e){
   if(e.key === "Enter"){ e.preventDefault(); sendMessage(); }
