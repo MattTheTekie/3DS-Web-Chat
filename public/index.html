@@ -5,172 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3DS Web Chat</title>
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background: #3A6EA5;
-  overflow-x: hidden;
-  display: flex;
-  align-items: center;
-  font-family: Tahoma;
-  font-size: 14px;
-}
-
-/* XP WINDOW */
-#window {
-  width: 1200px;
-  max-width: 95%;
-  height: 800px;
-  max-height: 95%;
-  background: #ECE9D8;
-  border: 2px solid #0A246A;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  margin: 0 auto;
-}
-
-/* ---------- XP Buttons - all devices ---------- */
-#xpButtons {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    white-space: nowrap; /* keep buttons horizontal */
-    display: flex;
-    gap: 2px;           /* spacing between buttons */
-}
-
-#xpButtons .xpBtn {
-    display: inline-block;
-    width: 22px;        /* slightly bigger for PC/mobile */
-    height: 22px;
-    line-height: 22px;  /* center text */
-    text-align: center;
-    cursor: pointer;
-    user-select: none;
-    box-sizing: border-box;
-
-    border: 2px outset gray;
-    border-radius: 2px;
-    font-weight: bold;
-    font-size: 12px;
-    background-color: #ECE9D8; /* classic XP button background */
-    color: white;               /* text color white */
-}
-
-/* Individual button colors */
-#xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
-#xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
-#xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
-
-/* Hover effect for PC / bigger screens */
-#xpButtons .xpBtn:hover {
-    background-color: #D0D0D0;
-}
-
-/* Pressed effect */
-#xpButtons .xpBtn:active {
-    border: 2px inset gray;
-    background-color: #B8B8B8;
-}
-
-/* TITLEBAR */
-#titlebar {
-  width: 100%;
-  height: 30px;
-  background: #0A246A;
-  color: white;
-  line-height: 30px;
-  padding-left: 10px;
-  font-weight: bold;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-}
-
-
-
-/* MAIN (Chat + Users) */
-#main {
-  flex: 1;
-  display: flex;
-  padding: 6px;
-  gap: 6px;
-  overflow: hidden;
-}
-
-/* CHAT AREA */
-#chatArea {
-  flex: 3;
-  display: flex;
-  flex-direction: column;
-  padding: 5px;
-  overflow: hidden;
-}
-
-#chat {
-  flex: 1;
-  background: white;
-  border: 2px inset gray;
-  overflow-y: scroll;
-  padding: 5px;
-}
-
-#inputArea {
-  margin-top: 6px;
-}
-
-#inputArea input[type="text"] {
-  width: 70%;
-}
-
-/* USERS PANEL */
-#usersPanel {
-  flex: 1;
-  background: #F4F4F4;
-  border: 2px inset gray;
-  padding: 6px;
-  overflow-y: auto;
-  min-width: 180px;
-  font-size: 12px;
-}
-
-/* BUTTONS */
-input, button {
-  font-family: Tahoma;
-  font-size: 14px;
-}
-
-button {
-  border: 2px outset gray;
-  background: #ECE9D8;
-  cursor: pointer;
-}
-
-button:active {
-  border: 2px inset gray;
-}
-
-#users {
-  margin-top: 5px;
-}
-
-/* Hide mirrored fields */
-.hiddenField { display: none; }
-
-/* --- 3DS / small screens (stacked dual-screen) --- */
-
-
+/* ---------- 3DS / Small Screens Layout ---------- */
 @media (max-width: 400px) {
   html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 800px; /* double height page */
+    height: 800px; /* Height adjusted for 3DS's double-screen layout */
     overflow: hidden;
     background: #ECE9D8;
   }
@@ -178,24 +19,12 @@ button:active {
   #window {
     position: relative;
     width: 100%;
-    height: 800px;
+    height: 800px; /* Full height of the window */
     border: none;
     box-sizing: border-box;
   }
 
-
-  /* TOP SCREEN = Chat UI */
-  #topScreen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 210px; /* slightly smaller top screen */
-    display: flex;
-    flex-direction: column;
-  }
-
-
+  /* Titlebar */
   #titlebar {
     height: 30px;
     background: #0A246A;
@@ -209,6 +38,7 @@ button:active {
     position: relative;
   }
 
+  /* Chat Area (Top screen on 3DS) */
   #chatArea {
     flex: 1;
     display: flex;
@@ -218,31 +48,32 @@ button:active {
   }
 
   #chat {
-    height: 160px; /* slightly smaller chat */
+    height: 160px; /* Slightly smaller chat area */
     background: white;
     border: 2px inset gray;
     overflow-y: scroll;
     padding: 5px;
   }
 
-  /* BOTTOM SCREEN = Users + input + upload */
+  /* Input and Upload Area */
+  #inputArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Users + Input Area (Bottom screen on 3DS) */
   #bottomScreen {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 590px; /* remaining bottom screen */
+    height: 590px; /* Remaining bottom area */
     display: flex;
     flex-direction: column;
     padding: 5px;
     box-sizing: border-box;
     background: #F4F4F4;
-  }
-
-  #inputArea {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
   }
 
   #usersPanel {
@@ -269,235 +100,49 @@ button:active {
     border: 2px inset gray;
   }
 
-  .hiddenField {
-    display: none;
-  }
+  /* Hide mirrored fields */
+  .hiddenField { display: none; }
 
-
+  /* XP Buttons (top-right corner of the window) */
   #xpButtons {
     position: absolute;
-    top: 3px;   /* adjust vertical position */
-    right: 3px; /* adjust horizontal position */
-    white-space: nowrap; /* prevent wrapping */
+    top: 3px;
+    right: 3px;
+    white-space: nowrap;
   }
 
-#xpButtons .xpBtn {
+  #xpButtons .xpBtn {
     display: inline-block;
-    width: 18px;        /* smaller width */
-    height: 18px;       /* smaller height */
-    line-height: 18px;  /* vertically center text */
+    width: 18px;        /* Smaller width */
+    height: 18px;       /* Smaller height */
+    line-height: 18px;  /* Vertically center text */
     text-align: center;
     cursor: pointer;
     user-select: none;
-    margin-left: 1px;   /* minimal spacing */
+    margin-left: 1px;
     box-sizing: border-box;
 
     border: 2px outset gray;
     border-radius: 2px;
     font-weight: bold;
-    font-size: 10px;       /* smaller font so X fits */
+    font-size: 10px;       /* Smaller font */
     background-color: #ECE9D8;
     color: white;
-}
+  }
 
-/* Individual button colors */
-#xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
-#xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
-#xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
+  /* Individual button colors */
+  #xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
+  #xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
+  #xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
 
-/* Pressed effect */
-#xpButtons .xpBtn:active {
+  /* Pressed effect for XP buttons */
+  #xpButtons .xpBtn:active {
     border: 2px inset gray;
     background-color: #DCDCDC;
-}
-}
-
-@media (min-width: 401px) and (max-width: 600px) {
-  html, body {
-    height: 100vh;
-    overflow: hidden;
-    font-size: 12px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #window {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #titlebar {
-    height: 30px;
-    line-height: 30px;
-    padding-left: 6px;
-    font-weight: bold;
-  }
-
-  /* Top screen = chat */
-  #topScreen, #chatArea {
-    flex: 0 0 55%; /* slightly smaller than 3DS */
-    display: flex;
-    flex-direction: column;
-    padding: 4px;
-    overflow: hidden;
-  }
-
-  #chat {
-    flex: 1;
-    overflow-y: auto;
-    border: 2px inset gray;
-    padding: 4px;
-  }
-
-  #inputArea {
-    flex: 0 0 auto;
-    margin-top: 4px;
-  }
-
-  /* Bottom screen = users + input */
-  #bottomScreen, #usersPanel {
-    flex: 0 0 45%;
-    display: flex;
-    flex-direction: column;
-    padding: 4px;
-    overflow-y: auto;
-    background: #F4F4F4;
-  }
-
-  #xpButtons .xpBtn {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
   }
 }
-
-
-
-/* ---------- MOBILE ONLY ---------- */
-@media (min-width: 360px) and (max-width: 600px) {
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    font-family: Tahoma, sans-serif;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-    background: #ECE9D8;
-  }
-
-  #window {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-  }
-
-  #titlebar {
-    height: 30px;
-    line-height: 30px;
-    padding-left: 8px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  #main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* CHAT AREA */
-  #chatArea {
-    flex: 1 1 auto;          /* flexible, fills available space */
-    display: flex;
-    flex-direction: column;
-    padding: 4px;
-    overflow: hidden;
-  }
-
-  #chat {
-    flex: 1 1 auto;          /* chat expands fully */
-    background: white;
-    border: 2px inset gray;
-    overflow-y: auto;
-    padding: 6px;
-    font-size: 14px;
-  }
-
-  /* USERS + INPUT AREA at bottom */
-  #usersPanel {
-    flex: 0 0 120px;         /* enough height to see users */
-    overflow-y: auto;
-    border: 2px inset gray;
-    padding: 4px;
-    background: #F4F4F4;
-  }
-
-  #inputArea {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 4px;
-  }
-
-  #inputArea input[type="text"]#message {
-    width: 100%;
-    height: 50px;           /* bigger typing box */
-    font-size: 16px;
-    padding: 6px;
-    box-sizing: border-box;
-  }
-
-  #inputArea input[type="text"]#username {
-    width: 100%;
-    height: 30px;
-    font-size: 14px;
-    padding: 4px;
-    box-sizing: border-box;
-  }
-
-  #inputArea button {
-    width: 100%;
-    height: 40px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  #uploadForm input[type="file"], #uploadForm button {
-    width: 100%;
-    font-size: 14px;
-    margin-top: 4px;
-    padding: 6px;
-    box-sizing: border-box;
-  }
-
-  /* XP BUTTONS */
-  #xpButtons {
-    top: 3px;
-    right: 3px;
-    position: absolute;
-  }
-
-  #xpButtons .xpBtn {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
-  }
-}
-
-
 </style>
+
 </head>
 <body>
 
