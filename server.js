@@ -13,6 +13,7 @@ app.use(express.json());
 
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 
+// 3DS-safe static serving for images
 app.use("/uploads", express.static("uploads"));
 app.use(express.static("public"));
 
@@ -160,7 +161,9 @@ app.post("/send", (req, res) => {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
-    const ext = file.mimetype.startsWith("video/") ? path.extname(file.originalname) || ".avi" : ".jpg";
+    const ext = file.mimetype.startsWith("video/")
+      ? path.extname(file.originalname) || ".mp4"
+      : ".jpg";
     cb(null, Date.now() + "-" + Math.random().toString(36).slice(2) + ext);
   }
 });
@@ -168,9 +171,8 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => cb(null,
-    file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")
-  )
+  fileFilter: (req, file, cb) =>
+    cb(null, file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/"))
 });
 
 app.post("/upload", upload.single("image"), async (req, res) => {
@@ -184,11 +186,15 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const inputPath = req.file.path;
 
     if (isVideo) {
-      const outputName = Date.now() + ".avi";
+      const outputName = Date.now() + ".mp4";
       const outputPath = path.join("uploads", outputName);
 
-      // FFmpeg conversion for 3DS
-      const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -s 400x240 -aspect 2:1 -r 20 -vcodec mjpeg -qscale 1 -acodec adpcm_ima_wav -ac 2 "${outputPath}"`;
+      // New Nintendo 3DS compatible FFmpeg conversion
+
+      const ffmpegCmd = `ffmpeg -y -i "${inputPath}" \
+      -c:v libx264 -profile:v high -b:v 682k -r 30 -c:a aac -b:a 128k -ar 48000 -ac 2 \
+      -s 640x360 -metadata:s:v:0 language=eng \
+      "${outputPath}"`;
 
       await new Promise((resolve, reject) => {
         exec(ffmpegCmd, (err, stdout, stderr) => {
@@ -211,7 +217,6 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       });
 
     } else {
-      // Image processing
       const outputName = Date.now() + ".jpg";
       const outputPath = path.join("uploads", outputName);
 
@@ -239,6 +244,18 @@ app.post("/upload", upload.single("image"), async (req, res) => {
   }
 });
 
+/* ---------- 3DS-SAFE VIDEO DELIVERY (Content-Length required) ---------- */
+app.get("/uploads/:file", (req, res) => {
+  const file = path.join("uploads", req.params.file);
+  if (!fs.existsSync(file)) return res.sendStatus(404);
+
+  const stat = fs.statSync(file);
+  res.setHeader("Content-Length", stat.size);
+  res.setHeader("Content-Type", "video/mp4");
+
+  fs.createReadStream(file).pipe(res);
+});
+
 /* ---------- IDLE CLEANUP ---------- */
 setInterval(() => {
   const now = Date.now();
@@ -254,4 +271,6 @@ setInterval(() => {
 /* ---------- START ---------- */
 ensureRoom("Lobby");
 
-app.listen(PORT, () => console.log("AIM XP 3DS running on port " + PORT));
+app.listen(PORT, () =>
+  console.log("AIM XP 3DS running on port " + PORT)
+);
