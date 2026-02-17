@@ -315,6 +315,20 @@ function scrollChatToBottom() {
     chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat container
 }
 
+
+// Update the users list dynamically
+function updateUsersList(usersArray) {
+    // Clear current list
+    users.innerHTML = '';
+
+    // Populate with new users
+    usersArray.forEach(function(user) {
+        var div = document.createElement("div");
+        div.textContent = user;
+        users.appendChild(div);
+    });
+}
+
 // Append a new message to the chat
 function appendMessage(m) {
     var div = document.createElement("div");
@@ -349,16 +363,27 @@ function appendMessage(m) {
     }
 }
 
-// Polling function to check for new messages
 function poll() {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/messages?room=" + currentRoom, true);
     xhr.onload = function() {
         var data = JSON.parse(xhr.responseText);
+        
+        // Log the response to check if it includes the users list
+        console.log("Poll Response:", data);
+
         var newMessages = data.messages.slice(lastMessageCount);
 
+        // Check if users are being returned
+        if (data.users) {
+            updateUsersList(data.users);
+        } else {
+            console.error("No users array in the response!");
+        }
+
+        // Append new messages
         for (var i = 0; i < newMessages.length; i++) {
-            appendMessage(newMessages[i]);  // Append new message
+            appendMessage(newMessages[i]);
         }
 
         lastMessageCount = data.messages.length;  // Update message count
