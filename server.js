@@ -161,18 +161,17 @@ app.post("/send", (req, res) => {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
-    const ext = file.mimetype.startsWith("video/")
-      ? path.extname(file.originalname) || ".mp4"
-      : ".jpg";
+    const ext = path.extname(file.originalname) || ".jpg";
     cb(null, Date.now() + "-" + Math.random().toString(36).slice(2) + ext);
   }
 });
 
+// Remove file size limit and file type filter
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) =>
-    cb(null, file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/"))
+  // No limits on file size (be cautious with this in production)
+  limits: {},
+  fileFilter: (req, file, cb) => cb(null, true) // Allow all file types
 });
 
 app.post("/upload", upload.single("image"), async (req, res) => {
@@ -182,14 +181,33 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
     joinUser(room.trim(), user.trim());
 
-    const isVideo = req.file.mimetype.startsWith("video/");
     const inputPath = req.file.path;
+    const isImage = req.file.mimetype.startsWith("image/");  // Check if it's an image
+    const isVideo = req.file.mimetype.startsWith("video/");  // Check if it's a video
 
-    if (isVideo) {
-      const outputName = Date.now() + ".mp4";
+    if (isImage) {
+      // If it's an image, process it with Sharp
+      const outputName = Date.now() + ".jpg";
       const outputPath = path.join("uploads", outputName);
 
-      // New Nintendo 3DS compatible FFmpeg conversion
+      await sharp(inputPath)
+        .resize({ width: 400 })  // Resize the image to 400px width
+        .jpeg({ quality: 70 })   // Compress to 70% quality
+        .toFile(outputPath);     // Save the processed image
+
+      fs.unlinkSync(inputPath);  // Delete the original file after processing
+      const imageUrl = "/uploads/" + outputName;
+
+      addMessage(room.trim(), {
+        system: false,
+        user: user.trim(),
+        text: timestamp() + `<br><a href="${imageUrl}" target="_blank"><img src="${imageUrl}" width="150"></a>`
+      });
+
+    } else if (isVideo || req.file.mimetype.startsWith("audio/") || req.file.mimetype.startsWith("application/")) {
+      // If it's a video, audio, or unsupported file type (treated as video)
+      const outputName = Date.now() + ".mp4";
+      const outputPath = path.join("uploads", outputName);
 
       const ffmpegCmd = `ffmpeg -y -i "${inputPath}" \
       -c:v libx264 -profile:v high -b:v 682k -r 30 -c:a aac -b:a 128k -ar 48000 -ac 2 \
@@ -207,7 +225,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
         });
       });
 
-      fs.unlinkSync(inputPath);
+      fs.unlinkSync(inputPath);  // Delete the original file after processing
       const mediaUrl = "/uploads/" + outputName;
 
       addMessage(room.trim(), {
@@ -217,22 +235,9 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       });
 
     } else {
-      const outputName = Date.now() + ".jpg";
-      const outputPath = path.join("uploads", outputName);
-
-      await sharp(inputPath)
-        .resize({ width: 400 })
-        .jpeg({ quality: 70 })
-        .toFile(outputPath);
-
-      fs.unlinkSync(inputPath);
-      const imageUrl = "/uploads/" + outputName;
-
-      addMessage(room.trim(), {
-        system: false,
-        user: user.trim(),
-        text: timestamp() + `<br><a href="${imageUrl}" target="_blank"><img src="${imageUrl}" width="150"></a>`
-      });
+      // If it's neither an image, video, nor audio (unsupported type), return an error
+      fs.unlinkSync(inputPath);  // Clean up the unsupported file
+      return res.status(400).json({ error: "Unsupported file type. Treating it as a video." });
     }
 
     lastActive[room.trim()][user.trim()] = Date.now();
