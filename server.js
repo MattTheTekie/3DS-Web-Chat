@@ -21,7 +21,7 @@ let rooms = {};
 let activeUsers = {};
 let lastActive = {};
 
-const MAX_MESSAGES = 100;
+const MAX_MESSAGES = 10000000000000000;
 const IDLE_TIMEOUT = 30000;
 
 /* ---------- TORONTO TIME ---------- */
