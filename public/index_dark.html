@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3DS Web Chat</title>
+<style>
+/* ---------- 3DS / Small Screens Layout ---------- */
+@media (max-width: 400px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 800px; /* Height adjusted for 3DS's double-screen layout */
+    overflow: hidden;
+    background: #ECE9D8;
+  }
+
+  #window {
+    position: relative;
+    width: 100%;
+    height: 800px; /* Full height of the window */
+    border: none;
+    box-sizing: border-box;
+  }
+
+  /* Titlebar */
+  #titlebar {
+    height: 30px;
+    background: #0A246A;
+    color: white;
+    line-height: 30px;
+    padding-left: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* title stays left */
+    position: relative;
+  }
+
+  /* Chat Area (Top screen on 3DS) */
+  #chatArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    overflow: hidden;
+  }
+
+  #chat {
+    height: 160px; /* Slightly smaller chat area */
+    background: white;
+    border: 2px inset gray;
+    overflow-y: scroll;
+    padding: 5px;
+  }
+
+  /* Input and Upload Area */
+  #inputArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Users + Input Area (Bottom screen on 3DS) */
+  #bottomScreen {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 590px; /* Remaining bottom area */
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+    background: #F4F4F4;
+  }
+
+  #usersPanel {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 5px;
+    border: 2px inset gray;
+    padding: 5px;
+    background: #F4F4F4;
+  }
+
+  input, button {
+    font-family: Tahoma;
+    font-size: 14px;
+  }
+
+  button {
+    border: 2px outset gray;
+    background: #ECE9D8;
+    cursor: pointer;
+  }
+
+  button:active {
+    border: 2px inset gray;
+  }
+
+  /* Hide mirrored fields */
+  .hiddenField { display: none; }
+
+  /* XP Buttons (top-right corner of the window) */
+  #xpButtons {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    white-space: nowrap;
+  }
+
+  #xpButtons .xpBtn {
+    display: inline-block;
+    width: 18px;        /* Smaller width */
+    height: 18px;       /* Smaller height */
+    line-height: 18px;  /* Vertically center text */
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 1px;
+    box-sizing: border-box;
+
+    border: 2px outset gray;
+    border-radius: 2px;
+    font-weight: bold;
+    font-size: 10px;       /* Smaller font */
+    background-color: #ECE9D8;
+    color: white;
+  }
+
+  /* Individual button colors */
+  #xpButtons .xpBtn:nth-child(1) { background-color: blue; }  /* _ minimize */
+  #xpButtons .xpBtn:nth-child(2) { background-color: blue; }  /* □ maximize */
+  #xpButtons .xpBtn:nth-child(3) { background-color: red; }   /* X close */
+
+  /* Pressed effect for XP buttons */
+  #xpButtons .xpBtn:active {
+    border: 2px inset gray;
+    background-color: #DCDCDC;
+  }
+}
+
+
+
+
+
+
+/* ---------- DARK MODE DEFAULT ---------- */
+
+html, body {
+  background: #1e1e1e;
+  color: #ddd;
+}
+
+#titlebar {
+  background: #111;
+  color: #fff;
+}
+
+#chat {
+  background: #2b2b2b;
+  color: #eee;
+  border: 2px inset #444;
+}
+
+#bottomScreen {
+  background: #1f1f1f;
+}
+
+#usersPanel {
+  background: #252525;
+  border: 2px inset #444;
+  color: #ddd;
+}
+
+input {
+  background: #333;
+  color: #eee;
+  border: 2px inset #555;
+}
+
+button {
+  background: #2e2e2e;
+  color: #eee;
+  border: 2px outset #555;
+}
+
+button:active {
+  border: 2px inset #555;
+}
+
+a {
+  color: #4da6ff;
+}
+
+
+
+</style>
+
+</head>
+<body>
+
+<div id="window">
+  <div id="titlebar">
+    <div>AIM - <span id="roomTitle">Lobby</span>    
+  <a href="index.html">
+    <img src="sun.png"
+         width="16"
+         height="16"
+         alt="Dark Mode"
+         style="margin-left:10px; cursor:pointer; vertical-align:middle;">
+  </a>
+</div>
+    <div id="xpButtons">
+      <div class="xpBtn">_</div>
+      <div class="xpBtn">□</div>
+      <div class="xpBtn">X</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- CHAT AREA -->
+    <div id="chatArea">
+      <div id="chat"></div>
+      <div id="inputArea">
+        Name: <input type="text" id="username" size="10"><br><br>
+        <input type="text" id="message" placeholder="Type message...">
+        <button onclick="sendMessage()">Send</button>
+        <br><br>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+          <input type="text" name="room" id="uploadRoom" class="hiddenField" required>
+          <input type="text" name="user" id="uploadUser" class="hiddenField" required>
+          <input type="file" name="image" required><br>
+          <button type="submit">Upload</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- USERS PANEL -->
+    <div id="usersPanel">
+      <b>Room</b><br>
+      <input type="text" id="roomInput" size="10"><br>
+      <button onclick="joinRoom()">Create & Join</button>
+      <hr>
+      <b>Users</b>
+      <div id="users"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentRoom = "Lobby";
+var chat = document.getElementById("chat");
+var users = document.getElementById("users");
+var lastMessageCount = 0;
+
+// Keep track of rooms created by this user
+var myRooms = ["Lobby"]; // Lobby is default
+
+function xhrPost(url, data){
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(JSON.stringify(data));
+}
+
+/* ---------- ROOM FUNCTIONS ---------- */
+function createRoom(){
+  var name = document.getElementById("roomInput").value.trim();
+  var user = document.getElementById("username").value.trim();
+  if(!user){ alert("Enter your name first."); return; }
+  if(!name){ alert("Enter a room name."); return; }
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/create-room", true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      alert("Room created successfully!");
+      myRooms.push(name); // add room to user's created list
+    } else if (xhr.status === 409) {
+      alert("Room already exists! Choose a different name.");
+    } else {
+      alert("Error creating room.");
+    }
+  };
+  xhr.send(JSON.stringify({ name: name }));
+}
+
+function joinRoom(){
+  var name=document.getElementById("roomInput").value.trim();
+  var user=document.getElementById("username").value.trim();
+  if(!user){ alert("Enter your name first."); return; }
+  if(!name){ alert("Enter a room name."); return; }
+  xhrPost("/join",{room:name,user:user});
+  currentRoom=name;
+  document.getElementById("roomTitle").innerText=name;
+}
+
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));  // Expiration time
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function eraseCookie(name) {
+  document.cookie = name + '=; Max-Age=-99999999; path=/';
+}
+
+// Check if a username is saved in cookies
+window.addEventListener("load", function() {
+  var savedUsername = getCookie("username");
+  if (savedUsername) {
+    document.getElementById("username").value = savedUsername;  // Pre-fill username if it exists
+  }
+});
+
+// When the user changes the username, update the cookie
+document.getElementById("username").addEventListener("change", function() {
+  var newUsername = document.getElementById("username").value.trim();
+  if (newUsername) {
+    setCookie("username", newUsername, 365);  // Save the new username in the cookie for 365 days
+  }
+});
+
+function sendMessage(){
+  var username = document.getElementById("username").value.trim();
+  if(!username){ alert("Enter your name first."); return; }
+
+  setCookie("username", username, 365);  // Update cookie with the current username
+
+  var text = document.getElementById("message").value.trim();
+  if(!text) return;
+
+  xhrPost("/send", {room: currentRoom, user: username, text: text});
+  document.getElementById("message").value = "";
+}
+
+
+document.getElementById("message").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){ e.preventDefault(); sendMessage(); }
+});
+
+var isUserAtBottom = true;
+var chat = document.getElementById("chat");
+
+// Function to check if the user is at the bottom of the chat
+function checkIfUserAtBottom() {
+    isUserAtBottom = (chat.scrollHeight - chat.scrollTop === chat.clientHeight);
+}
+
+// Scroll chat to the bottom
+function scrollChatToBottom() {
+    chat.scrollTop = chat.scrollHeight;  // Scroll to the bottom of the chat container
+}
+
+
+// Update the users list dynamically
+function updateUsersList(usersArray) {
+    // Clear current list
+    users.innerHTML = '';
+
+    // Populate with new users
+    usersArray.forEach(function(user) {
+        var div = document.createElement("div");
+        div.textContent = user;
+        users.appendChild(div);
+    });
+}
+
+// Append a new message to the chat
+function appendMessage(m) {
+    var div = document.createElement("div");
+    div.style.wordBreak = "break-word";
+    div.style.marginBottom = "2px";
+
+    if (m.system) {
+        div.style.color = "gray";
+        div.textContent = m.text;
+    } else {
+        var text = m.text;
+
+        // Convert URLs into clickable links
+        text = text.replace(
+            /(https?:\/\/[^\s]+)/gi,
+            function(url) {
+                return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+            }
+        );
+
+        // Render the message with the user and content
+        div.innerHTML =
+            "<b style='color:#000080'>" +
+            m.user +
+            ":</b> " +
+            text;
+    }
+
+    chat.appendChild(div);  // Add the message to the chat container
+    if (isUserAtBottom) {
+        scrollChatToBottom();  // Scroll to the bottom if the user was already at the bottom
+    }
+}
+
+function poll() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/messages?room=" + currentRoom, true);
+    xhr.onload = function() {
+        var data = JSON.parse(xhr.responseText);
+        
+        // Log the response to check if it includes the users list
+        console.log("Poll Response:", data);
+
+        var newMessages = data.messages.slice(lastMessageCount);
+
+        // Check if users are being returned
+        if (data.users) {
+            updateUsersList(data.users);
+        } else {
+            console.error("No users array in the response!");
+        }
+
+        // Append new messages
+        for (var i = 0; i < newMessages.length; i++) {
+            appendMessage(newMessages[i]);
+        }
+
+        lastMessageCount = data.messages.length;  // Update message count
+    };
+    xhr.send();
+}
+
+// Add an event listener for scroll behavior (user scrolls up)
+chat.addEventListener("scroll", function() {
+    checkIfUserAtBottom();  // Check if the user is manually scrolling
+});
+
+// Set an interval to continuously poll for new messages every 1.5 seconds
+setInterval(poll, 1500);
+
+// Ensure the chat scrolls to the bottom after the page loads
+window.addEventListener("load", function() {
+    setTimeout(scrollChatToBottom, 100);  // Wait for the chat to load, then scroll
+});
+
+/* ---------- LEAVE ---------- */
+function sendLeave(){
+  var user=document.getElementById("username").value.trim();
+  if(user){ navigator.sendBeacon("/leave",JSON.stringify({room:currentRoom,user:user})); }
+}
+window.addEventListener("beforeunload", sendLeave);
+window.addEventListener("pagehide", sendLeave);
+
+/* ---------- SYNC UPLOAD ---------- */
+setInterval(function(){
+  document.getElementById("uploadUser").value = document.getElementById("username").value;
+  document.getElementById("uploadRoom").value = currentRoom;
+}, 500);
+
+</script>
+
+ <script>
+    // Check the User-Agent string
+    const userAgent = navigator.userAgent;
+
+    // If it's not a Nintendo 3DS, redirect to index1.html
+    if (!userAgent.includes("Nintendo 3DS")) {
+      window.location.href = "index1.html"; // Redirect to index1.html
+    }
+  </script>
+  
+</body>
+</html>
