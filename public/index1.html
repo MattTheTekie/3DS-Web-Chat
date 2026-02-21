@@ -498,13 +498,109 @@ button:active {
 }
 
 
+/* ================= DARK MODE ================= */
+body.dark {
+  background: #1e1e1e;
+  color: #e4e4e4;
+}
+
+/* Window */
+body.dark #window {
+  background: #2b2b2b;
+  border: 2px solid #111;
+}
+
+/* Titlebar */
+body.dark #titlebar {
+  background: #111827; /* dark navy */
+  color: #ffffff;
+}
+
+/* Chat */
+body.dark #chat {
+  background: #121212;
+  border: 2px inset #333;
+  color: #e6e6e6;
+}
+
+/* Users panel */
+body.dark #usersPanel {
+  background: #1f1f1f;
+  border: 2px inset #333;
+  color: #dcdcdc;
+}
+
+/* Inputs */
+body.dark input[type="text"],
+body.dark input[type="file"] {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 2px inset #444;
+}
+
+body.dark input::placeholder {
+  color: #aaaaaa;
+}
+
+/* Buttons */
+body.dark button {
+  background: #2c2c2c;
+  color: #ffffff;
+  border: 2px outset #555;
+}
+
+body.dark button:active {
+  border: 2px inset #555;
+  background: #1f1f1f;
+}
+
+/* XP Buttons */
+body.dark #xpButtons .xpBtn {
+  border: 2px outset #555;
+}
+
+body.dark #xpButtons .xpBtn:active {
+  border: 2px inset #555;
+}
+
+/* Username color in chat */
+body.dark #chat b {
+  color: #4da3ff !important;
+}
+
+/* Links */
+body.dark #chat a {
+  color: #6ab0ff;
+}
+
+body.dark #chat a:visited {
+  color: #b58cff;
+}
+
+body.dark hr {
+  border-color: #444;
+}
+
+/* Mobile / small screens override */
+@media (max-width: 600px) {
+  body.dark html,
+  body.dark {
+    background: #1e1e1e;
+  }
+
+  body.dark #bottomScreen,
+  body.dark #main {
+    background: #1e1e1e;
+  }
+}
+  
 </style>
 </head>
 <body>
 
 <div id="window">
   <div id="titlebar">
-    <div>AIM - <span id="roomTitle">Lobby</span></div>
+    <div>AIM - <span id="roomTitle">Lobby</span><button onclick="document.body.classList.toggle('dark')">🌙</button></div>
     <div id="xpButtons">
       <div class="xpBtn">_</div>
       <div class="xpBtn">□</div>
